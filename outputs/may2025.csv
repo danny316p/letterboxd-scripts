@@ -32,6 +32,7 @@ Title, Year
 "The Fabulous Fraud", 1948
 "Rambling 'Round Radio Row 5 (The Happiness Boys)", 1933
 "Trail Guide", 1952
+"Hi-Yo Silver", 1938
 "Onion Pacific", 1933
 "Bulldog Drummond's Peril", 1938
 "Du cote de la cote", 1958
@@ -57,12 +58,12 @@ Title, Year
 "The Adventures of Prince Achmed", 1926
 "Chinese Odyssey 2002", 2002
 "Walkabout", 1971
-"Viva Villa", 1934
+"Viva Villa!", 1934
 "Sombrero", 1953
 "The Girl from Mexico", 1939
 "Mexican Spitfire", 1940
 "Mexican Spitfire Out West", 1940
-"Mexican Spitfire's Baby", 1941
+"The Mexican Spitfire's Baby", 1941
 "Mexican Spitfire at Sea", 1942
 "Mexican Spitfire Sees a Ghost", 1942
 "Mexican Spitfire's Elephant", 1942
@@ -104,7 +105,7 @@ Title, Year
 "High Society", 1956
 "Satchmo: The Life of Louis Armstrong", 1989
 "New Orleans", 1947
-"The Man From Laramie", 1955
+"The Man from Laramie", 1955
 "Ride Lonesome", 1959
 "Forty Guns", 1957
 "High Plains Drifter", 1973
@@ -119,6 +120,7 @@ Title, Year
 "San Antonio", 1945
 "The Swimmer", 1968
 "A Streetcar Named Desire", 1951
+"Duck Soup", 1933
 "Not with My Wife, You Don't!", 1966
 "Bachelor in Paradise", 1961
 "Because You're Mine", 1952
@@ -126,6 +128,7 @@ Title, Year
 "Game Warden", 1955
 "Rambling 'Round Radio Row 6 (Harry Rose)", 1934
 "Dynamite Pass", 1950
+"Thundering Earth", 1938
 "Wimmin Is a Myskery", 1940
 "Bulldog Drummond in Africa", 1938
 "Time Out for Trouble", 1961
@@ -133,6 +136,7 @@ Title, Year
 "Dark Passage", 1947
 "I Died a Thousand Times", 1955
 "Get Carter", 1971
+"The Manchurian Candidate", 1962
 "Sweet Smell of Success", 1957
 "The Killers", 1946
 "Malcolm X", 1992
@@ -143,10 +147,13 @@ Title, Year
 "Sounder", 1972
 "I Remember Mama", 1948
 "Mildred Pierce", 1945
-"Belle Of The Nineties", 1934
+"Belle of the Nineties", 1934
+"Klondike Annie", 1936
+"Go West Young Man", 1936
 "Mary, Queen of Tots", 1925
 "A Lady of Chance", 1928
 "Valerie and Her Week of Wonders", 1970
+"The Joke", 1969
 "Little Women", 1933
 "Stage Door", 1937
 "Mary of Scotland", 1936
@@ -167,16 +174,20 @@ Title, Year
 "Union Pacific", 1939
 "The Ox-Bow Incident", 1943
 "Hombre", 1967
+"The Great Silence", 1968
 "Wichita", 1955
 "Sergeant Rutledge", 1960
 "The Méliès Mystery", 2021
+"Metropolis", 1926
 "Things to Come", 1936
 "World Without End", 1955
+"The Bed Sitting Room", 1969
 "The World, the Flesh and the Devil", 1959
 "Soylent Green", 1973
 "Logan's Run", 1975
 "Early Spring", 1956
 "Her Brother", 1960
+"Keiko Kishi, Eternally Rebellious", 2023
 "Kwaidan", 1965
 "The Garden of Women", 1954
 "Four's a Crowd", 1938
@@ -187,6 +198,7 @@ Title, Year
 "Gentleman Jim", 1942
 "The Lady from Shanghai", 1948
 "The Magnificent Seven", 1960
+"High Noon", 1952
 "High Noon on the Waterfront", 2022
 "My Darling Clementine", 1946
 "A Fistful of Dollars", 1964
@@ -201,6 +213,7 @@ Title, Year
 "The Shop Around the Corner", 1940
 "The Mortal Storm", 1940
 "Dead Men Don't Wear Plaid", 1982
+"This Gun for Hire", 1942
 "In a Lonely Place", 1950
 "Deception", 1946
 "Johnny Eager", 1942
@@ -210,6 +223,7 @@ Title, Year
 "Headpin Hints", 1955
 "Rambling 'Round Radio Row 7 (Ted Pearson)", 1934
 "Rustlers", 1949
+"The Pitfall", 1938
 "Nurse-Mates", 1940
 "Arrest Bulldog Drummond", 1939
 "Wonderful World of Tupperware", 1965
@@ -217,6 +231,7 @@ Title, Year
 "The Shooting", 1966
 "Guess Who's Coming to Dinner", 1967
 "From Darkness to Light", 2024
+"Frankenstein", 1931
 "The Curse of Frankenstein", 1957
 "Touchez pas au grisbi", 1954
 "Guns Don't Argue", 1957
@@ -229,6 +244,7 @@ Title, Year
 "A Life of Her Own", 1950
 "Sparkle", 1976
 "Coal Miner's Daughter", 1980
+"Every Day's a Holiday", 1938
 "My Little Chickadee", 1940
 "The Heat's On", 1943
 "A Straightforward Boy", 1929
@@ -244,6 +260,7 @@ Title, Year
 "Thirty Seconds Over Tokyo", 1944
 "The Crowded Sky", 1960
 "Out of Africa", 1985
+"Barefoot in the Park", 1967
 "The Hot Rock", 1972
 "The Candidate", 1972
 "Hollywood My Hometown", 1965
@@ -255,11 +272,10 @@ Title, Year
 "Night Song", 1947
 "The Racket", 1951
 "Abe Lincoln in Illinois", 1940
-"The Searchers", 1956
-"Duel in the Sun", 1946
-"Winchester '73", 1950
-"I Shot Jesse James", 1949
-"Blood on the Moon", 1948
+"Butch Cassidy and the Sundance Kid", 1969
+"The Good, the Bad and the Ugly", 1968
+"The Outlaw Josey Wales", 1976
+"McCabe & Mrs. Miller", 1971
 "Piccadilly Jim", 1936
 "The Last of Mrs. Cheyney", 1937
 "Mr. and Mrs. Smith", 1941
@@ -267,6 +283,7 @@ Title, Year
 "Night Must Fall", 1964
 "When Ladies Meet", 1933
 "Lady in the Lake", 1947
+"Sayonara", 1957
 "Flower Drum Song", 1961
 "Cry for Happy", 1961
 "The Horizontal Lieutenant", 1962
@@ -284,6 +301,7 @@ Title, Year
 "Brokeback Mountain", 2005
 "Buck and the Preacher", 1972
 "Devil's Doorway", 1950
+"Bearing Witness: Native American Voices in Hollywood", 2024
 "Follow Me Quietly", 1949
 "Mystery Street", 1950
 "The Tattooed Stranger", 1950
@@ -292,6 +310,7 @@ Title, Year
 "Crime Wave", 1954
 "The Big Combo", 1955
 "While the City Sleeps", 1956
+"The Best Years of Our Lives", 1946
 "Till the End of Time", 1946
 "Pride of the Marines", 1945
 "Battle Cry", 1955
@@ -322,6 +341,7 @@ Title, Year
 "The Red Badge of Courage", 1951
 "Shoulder Arms", 1918
 "A Sailor-Made Man", 1921
+"The Mirror", 1975
 "A Generation", 1955
 "Report from the Aleutians", 1943
 "Go for Broke!", 1951
@@ -341,9 +361,11 @@ Title, Year
 "The Helen Morgan Story", 1957
 "Your Cheatin' Heart", 1964
 "Interrupted Melody", 1955
-"The Good, the Bad and the Ugly", 1968
-"The Outlaw Josey Wales", 1976
-"McCabe & Mrs. Miller", 1971
+"The Searchers", 1956
+"Duel in the Sun", 1946
+"Winchester '73", 1950
+"I Shot Jesse James", 1949
+"Blood on the Moon", 1948
 "MGM Parade Show #26", 1955
 "The Man Who Played God", 1932
 "The Man Who Talked Too Much", 1940
@@ -354,6 +376,9 @@ Title, Year
 "The Man Who Came to Dinner", 1942
 "The Man Who Knew Too Much", 1934
 "The Man Who Laughs", 1966
+"The Big Clock", 1948
+"A Connecticut Yankee in King Arthur's Court", 1949
+"Sorrowful Jones", 1949
 "The Private Life of Don Juan", 1934
 "The Lion Has Wings", 1939
 "Affectionately Yours", 1941
@@ -364,6 +389,8 @@ Title, Year
 "A King in New York", 1957
 "A Face in the Crowd", 1957
 "Network", 1976
+"Once Upon a Time in the West", 1969
+"The Man Who Shot Liberty Valance", 1962
 "The Ballad of Cable Hogue", 1970
 "The Wild Bunch", 1969
 "The Dawn Patrol", 1930
@@ -383,6 +410,7 @@ Title, Year
 "Inflation", 1933
 "Rambling 'Round Radio Row 8", 1934
 "The Bandit Trail", 1941
+"Agent of Treachery", 1938
 "Fightin' Pals", 1933
 "Bulldog Drummond's Secret Police", 1939
 "Trial by Trigger", 1944
