@@ -8,3 +8,7 @@ lynx -dump http://escapepress.com/tcmsched/tcmbig_09.htm > tschlyn
 
 # mangle that file with sed and grep to create a Letterboxd-ready csv file
 echo "Title, Year" > sedoutput.csv; grep "\[[0-9]" tschlyn | grep -v "TCM Schedule" | grep -v "web counter" | sed -E 's/^.*\](.*) \(([1-2][0-9][0-9][0-9])\)/\"\1\", \2/' | sed -E 's/(^.*\])//' >> sedoutput.csv
+
+NOW=`date +%D`
+LAST=`awk '/Last updated/ { print $3}' tschlyn`
+echo "Reimported $NOW with data from $LAST ( films)"
