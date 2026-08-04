@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Letterboxd Wikipedia Link
 // @namespace    http://tampermonkey.net/
-// @version      1.3
-// @description  Adds a link to Wikipedia on each Letterboxd movie page
+// @version      1.4
+// @description  Adds a Wikipedia button next to IMDb and TMDB on Letterboxd movie pages
 // @author       You
 // @match        https://letterboxd.com/film/*
 // @grant        none
@@ -23,7 +23,7 @@
     function getMovieInfoFromMeta() {
         log('Looking for movie info in meta tags...');
         
-        // Primary source - this seems to work based on your feedback
+        // Primary source - production:name-and-year meta
         const nameAndYearMeta = document.querySelector('meta[name="production:name-and-year"]');
         if (nameAndYearMeta) {
             const content = nameAndYearMeta.getAttribute('content');
@@ -47,19 +47,8 @@
         if (ogTitle) {
             const content = ogTitle.getAttribute('content');
             if (content) {
-                // Remove " - Letterboxd" suffix if present
                 const cleanTitle = content.replace(/\s*[-–]\s*Letterboxd$/, '').trim();
                 log('Found title from og:title:', cleanTitle);
-                return { title: cleanTitle, year: null };
-            }
-        }
-
-        const twitterTitle = document.querySelector('meta[name="twitter:title"]');
-        if (twitterTitle) {
-            const content = twitterTitle.getAttribute('content');
-            if (content) {
-                const cleanTitle = content.replace(/\s*[-–]\s*Letterboxd$/, '').trim();
-                log('Found title from twitter:title:', cleanTitle);
                 return { title: cleanTitle, year: null };
             }
         }
@@ -70,7 +59,6 @@
 
     // Get release year from meta tags
     function getYearFromMeta() {
-        // Try the production:name-and-year meta first
         const nameAndYearMeta = document.querySelector('meta[name="production:name-and-year"]');
         if (nameAndYearMeta) {
             const content = nameAndYearMeta.getAttribute('content');
@@ -79,25 +67,6 @@
                 return yearMatch[1];
             }
         }
-
-        // Try other common meta tags
-        const selectors = [
-            'meta[property="video:release_date"]',
-            'meta[name="production:release-date"]',
-            'meta[name="production:year"]'
-        ];
-
-        for (const selector of selectors) {
-            const meta = document.querySelector(selector);
-            if (meta) {
-                const content = meta.getAttribute('content');
-                const yearMatch = content.match(/\b(19|20)\d{2}\b/);
-                if (yearMatch) {
-                    return yearMatch[0];
-                }
-            }
-        }
-
         return null;
     }
 
@@ -113,28 +82,53 @@
 
         // If we have a year, try the specific format
         if (year) {
-            const url = `https://en.wikipedia.org/wiki/${cleanTitle}_(${year}_film)`;
-            log('Generated Wikipedia URL with year:', url);
-            return url;
+            return `https://en.wikipedia.org/wiki/${cleanTitle}_(${year}_film)`;
         }
 
         // Try without year
-        const url = `https://en.wikipedia.org/wiki/${cleanTitle}`;
-        log('Generated Wikipedia URL without year:', url);
-        return url;
+        return `https://en.wikipedia.org/wiki/${cleanTitle}`;
     }
 
-    // Main function to add the Wikipedia link
-    function addWikipediaLink() {
-        log('Attempting to add Wikipedia link...');
+    // Main function to add the Wikipedia button
+    function addWikipediaButton() {
+        log('Attempting to add Wikipedia button...');
 
-        // Check if link already exists
-        if (document.querySelector('.wikipedia-link-container')) {
-            log('Link already exists');
+        // Check if button already exists
+        if (document.querySelector('.wikipedia-button')) {
+            log('Button already exists');
             return;
         }
 
-        // Get movie info from meta tags
+        // Find the "More at" section container
+        const moreAtSection = document.querySelector('.film-credits .text-sluglist');
+        if (!moreAtSection) {
+            log('Could not find "More at" section');
+            // Try to find it by looking for the text "More at"
+            const allText = document.querySelectorAll('*');
+            for (const el of allText) {
+                if (el.textContent && el.textContent.trim() === 'More at' && el.nextElementSibling) {
+                    log('Found "More at" section by text search');
+                    // The next sibling should be the container with the links
+                    const container = el.nextElementSibling;
+                    if (container && container.querySelector('a')) {
+                        // We found the container, now add our button there
+                        addButtonToContainer(container);
+                        return;
+                    }
+                }
+            }
+            log('Could not find "More at" section at all');
+            return;
+        }
+
+        // We found the section, now add our button
+        addButtonToContainer(moreAtSection);
+    }
+
+    function addButtonToContainer(container) {
+        log('Found container, adding Wikipedia button...');
+
+        // Get movie info
         const movieInfo = getMovieInfoFromMeta();
         if (!movieInfo || !movieInfo.title) {
             log('Failed to get movie info from meta tags');
@@ -143,157 +137,100 @@
 
         const title = movieInfo.title;
         let year = movieInfo.year;
-
-        // If no year found, try to get it from other meta tags
         if (!year) {
             year = getYearFromMeta();
-            log('Year from other meta sources:', year || 'Not found');
         }
 
         // Get Wikipedia URL
         const wikiUrl = getWikipediaUrl(title, year);
-        const searchUrl = `https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(title + ' ' + (year || 'film'))}`;
+        log('Wikipedia URL:', wikiUrl);
 
-        // Find a good place to insert the link
-        let insertPoint = document.querySelector('.movie-title-wrapper');
-        if (!insertPoint) {
-            insertPoint = document.querySelector('.film-title');
-        }
-        if (!insertPoint) {
-            insertPoint = document.querySelector('.film-header');
-        }
-        if (!insertPoint) {
-            insertPoint = document.querySelector('.film-details');
-        }
-        if (!insertPoint) {
-            insertPoint = document.querySelector('.poster + div');
-        }
-        if (!insertPoint) {
-            insertPoint = document.querySelector('.js-film-page .col-17');
-        }
-        if (!insertPoint) {
-            const metaContainer = document.querySelector('meta[name="production:name-and-year"]')?.parentElement;
-            if (metaContainer) {
-                insertPoint = metaContainer;
-            }
-        }
-
-        if (!insertPoint) {
-            log('No suitable insertion point found, using body');
-            insertPoint = document.body;
-        }
-
-        // Create the link container
-        const linkContainer = document.createElement('div');
-        linkContainer.className = 'wikipedia-link-container';
-        linkContainer.style.cssText = `
-            margin: 15px 0;
-            padding: 10px 0;
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            align-items: center;
-        `;
-
-        // Create the main Wikipedia link
-        const link = document.createElement('a');
-        link.href = wikiUrl;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.textContent = '📖 View on Wikipedia';
-        link.style.cssText = `
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background-color: #ffffff;
-            color: #0066cc;
-            border-radius: 6px;
-            border: 2px solid #e0e0e0;
+        // Create the Wikipedia button
+        const wikiLink = document.createElement('a');
+        wikiLink.href = wikiUrl;
+        wikiLink.target = '_blank';
+        wikiLink.rel = 'noopener noreferrer';
+        wikiLink.className = 'wikipedia-button';
+        wikiLink.textContent = 'Wikipedia';
+        wikiLink.style.cssText = `
+            display: inline-block;
+            margin-left: 4px;
+            margin-right: 4px;
+            padding: 2px 10px;
+            background-color: #000000;
+            color: #ffffff;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
             text-decoration: none;
-            font-weight: 600;
-            font-size: 14px;
             transition: all 0.2s ease;
-            cursor: pointer;
+            line-height: 1.8;
+            vertical-align: middle;
         `;
 
-        // Hover effects
-        link.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#f0f7ff';
-            this.style.borderColor = '#0066cc';
-            this.style.transform = 'translateY(-1px)';
-            this.style.boxShadow = '0 4px 8px rgba(0,102,204,0.15)';
+        // Hover effect
+        wikiLink.addEventListener('mouseenter', function() {
+            this.style.backgroundColor = '#3366cc';
+            this.style.transform = 'scale(1.02)';
         });
 
-        link.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '#ffffff';
-            this.style.borderColor = '#e0e0e0';
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = 'none';
+        wikiLink.addEventListener('mouseleave', function() {
+            this.style.backgroundColor = '#000000';
+            this.style.transform = 'scale(1)';
         });
 
-        // Create a fallback search link
+        // Also add a fallback search link (smaller, just in case)
+        const searchUrl = `https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(title + ' ' + (year || 'film'))}`;
         const searchLink = document.createElement('a');
         searchLink.href = searchUrl;
         searchLink.target = '_blank';
         searchLink.rel = 'noopener noreferrer';
-        searchLink.textContent = '🔍 Search Wikipedia';
+        searchLink.className = 'wikipedia-search-button';
+        searchLink.textContent = '🔍';
         searchLink.style.cssText = `
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 20px;
-            background-color: #f8f9fa;
+            display: inline-block;
+            margin-left: 0px;
+            margin-right: 4px;
+            padding: 2px 6px;
+            background-color: #f0f0f0;
             color: #666;
-            border-radius: 6px;
-            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            font-size: 11px;
             text-decoration: none;
-            font-weight: 500;
-            font-size: 13px;
             transition: all 0.2s ease;
-            cursor: pointer;
+            line-height: 1.8;
+            vertical-align: middle;
         `;
+        searchLink.title = 'Search Wikipedia (fallback)';
 
         searchLink.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = '#e9ecef';
-            this.style.borderColor = '#999';
+            this.style.backgroundColor = '#e0e0e0';
         });
 
         searchLink.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = '#f8f9fa';
-            this.style.borderColor = '#e0e0e0';
+            this.style.backgroundColor = '#f0f0f0';
         });
 
-        // Add info text about what's being searched
-        const infoText = document.createElement('span');
-        infoText.textContent = `"${title}${year ? ' (' + year + ')' : ''}"`;
-        infoText.style.cssText = `
-            font-size: 12px;
-            color: #666;
-            margin-left: 5px;
-        `;
-
-        // Add links to container
-        linkContainer.appendChild(link);
-        linkContainer.appendChild(searchLink);
-        linkContainer.appendChild(infoText);
-
-        // Insert the link
-        try {
-            if (insertPoint && insertPoint.parentNode) {
-                // Try to insert after the insertion point
-                insertPoint.parentNode.insertBefore(linkContainer, insertPoint.nextSibling);
-            } else {
-                // Fallback: append to body
-                document.body.appendChild(linkContainer);
-            }
-            log('Link inserted successfully');
-            log('Movie:', title, year || '');
-            log('Wikipedia URL:', wikiUrl);
-        } catch (e) {
-            log('Error inserting link:', e);
-            document.body.appendChild(linkContainer);
+        // Insert the buttons before the IMDb/TMDB links
+        const firstLink = container.querySelector('a');
+        if (firstLink) {
+            // Insert before the first link (which is usually IMDb)
+            container.insertBefore(wikiLink, firstLink);
+            container.insertBefore(searchLink, firstLink);
+            // Add a small space after the search link
+            const space = document.createTextNode(' ');
+            container.insertBefore(space, firstLink);
+            log('Wikipedia button inserted before IMDb');
+        } else {
+            // If no links found, just append
+            container.appendChild(wikiLink);
+            container.appendChild(searchLink);
+            log('Wikipedia button appended to container');
         }
+
+        // Log success
+        log('✅ Wikipedia button added successfully!');
+        log('Movie:', title, year || '');
     }
 
     // Wait for the page to load
@@ -306,18 +243,18 @@
         const checkInterval = setInterval(() => {
             attempts++;
             
-            // Check if the meta tag exists
-            const metaTag = document.querySelector('meta[name="production:name-and-year"]');
+            // Check if the "More at" section exists
+            const moreAtSection = document.querySelector('.film-credits .text-sluglist');
             
-            if (metaTag || document.readyState === 'complete') {
-                log('Page ready, adding Wikipedia link...');
+            if (moreAtSection || document.querySelector('.film-credits')) {
+                log('Page ready, adding Wikipedia button...');
                 clearInterval(checkInterval);
                 // Wait a bit more for dynamic content
-                setTimeout(addWikipediaLink, 500);
+                setTimeout(addWikipediaButton, 500);
             } else if (attempts >= maxAttempts) {
-                log('Max attempts reached, trying to add link anyway...');
+                log('Max attempts reached, trying to add button anyway...');
                 clearInterval(checkInterval);
-                addWikipediaLink();
+                addWikipediaButton();
             }
         }, 500);
     }
@@ -334,10 +271,10 @@
     const observer = new MutationObserver(() => {
         const currentUrl = location.href;
         if (currentUrl !== lastUrl && currentUrl.includes('/film/')) {
-            log('URL changed, re-adding link...');
+            log('URL changed, re-adding button...');
             lastUrl = currentUrl;
-            // Remove old links
-            document.querySelectorAll('.wikipedia-link-container').forEach(el => el.remove());
+            // Remove old buttons
+            document.querySelectorAll('.wikipedia-button, .wikipedia-search-button').forEach(el => el.remove());
             setTimeout(waitForPageLoad, 1000);
         }
     });
