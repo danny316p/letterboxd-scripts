@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Letterboxd Wikipedia Link
 // @namespace    http://tampermonkey.net/
-// @version      1.4
+// @version      1.5
 // @description  Adds a Wikipedia button next to IMDb and TMDB on Letterboxd movie pages
 // @author       You
 // @match        https://letterboxd.com/film/*
@@ -99,34 +99,79 @@
             return;
         }
 
-        // Find the "More at" section container
-        const moreAtSection = document.querySelector('.film-credits .text-sluglist');
-        if (!moreAtSection) {
-            log('Could not find "More at" section');
-            // Try to find it by looking for the text "More at"
-            const allText = document.querySelectorAll('*');
-            for (const el of allText) {
-                if (el.textContent && el.textContent.trim() === 'More at' && el.nextElementSibling) {
-                    log('Found "More at" section by text search');
-                    // The next sibling should be the container with the links
-                    const container = el.nextElementSibling;
-                    if (container && container.querySelector('a')) {
-                        // We found the container, now add our button there
-                        addButtonToContainer(container);
-                        return;
+        // Find the "More at" section - look for the text node containing "More at"
+        let moreAtContainer = null;
+        const walker = document.createTreeWalker(
+            document.body,
+            NodeFilter.SHOW_TEXT,
+            {
+                acceptNode: function(node) {
+                    if (node.textContent.trim() === 'More at') {
+                        return NodeFilter.FILTER_ACCEPT;
+                    }
+                    return NodeFilter.FILTER_REJECT;
+                }
+            }
+        );
+
+        let textNode = walker.nextNode();
+        if (textNode) {
+            // The parent of the text node should be the container
+            const parent = textNode.parentNode;
+            if (parent) {
+                // The parent should contain the links as well
+                // Look for the next sibling or parent that contains the links
+                let container = parent;
+                if (container.querySelector('a.micro-button') || container.querySelector('.micro-button')) {
+                    moreAtContainer = container;
+                    log('Found "More at" container:', container);
+                } else {
+                    // The links might be in the parent's parent or next sibling
+                    const nextSibling = parent.nextSibling;
+                    if (nextSibling && nextSibling.querySelector && nextSibling.querySelector('.micro-button')) {
+                        moreAtContainer = nextSibling;
+                        log('Found "More at" container in next sibling');
+                    } else if (parent.parentNode && parent.parentNode.querySelector && parent.parentNode.querySelector('.micro-button')) {
+                        moreAtContainer = parent.parentNode;
+                        log('Found "More at" container in parent node');
                     }
                 }
             }
-            log('Could not find "More at" section at all');
-            return;
         }
 
-        // We found the section, now add our button
-        addButtonToContainer(moreAtSection);
-    }
+        // If we couldn't find it via tree walker, try direct selectors
+        if (!moreAtContainer) {
+            log('Trying direct selectors...');
+            // Try to find by looking for elements containing "IMDb" links
+            const imdbLinks = document.querySelectorAll('a[href*="imdb.com"]');
+            for (const link of imdbLinks) {
+                // Check if this is in the "More at" section
+                const parent = link.closest('.text-sluglist') || link.parentNode;
+                if (parent) {
+                    // Check if this parent contains "More at" text
+                    const parentText = parent.textContent || '';
+                    if (parentText.includes('More at')) {
+                        moreAtContainer = parent;
+                        log('Found container via IMDb link search');
+                        break;
+                    }
+                }
+            }
+        }
 
-    function addButtonToContainer(container) {
-        log('Found container, adding Wikipedia button...');
+        // If still not found, try by looking for the class
+        if (!moreAtContainer) {
+            const textSluglist = document.querySelector('.text-sluglist');
+            if (textSluglist) {
+                moreAtContainer = textSluglist;
+                log('Found container via .text-sluglist class');
+            }
+        }
+
+        if (!moreAtContainer) {
+            log('Could not find "More at" section');
+            return;
+        }
 
         // Get movie info
         const movieInfo = getMovieInfoFromMeta();
@@ -145,27 +190,28 @@
         const wikiUrl = getWikipediaUrl(title, year);
         log('Wikipedia URL:', wikiUrl);
 
-        // Create the Wikipedia button
+        // Create the Wikipedia button - matching the style of existing buttons
         const wikiLink = document.createElement('a');
         wikiLink.href = wikiUrl;
         wikiLink.target = '_blank';
         wikiLink.rel = 'noopener noreferrer';
-        wikiLink.className = 'wikipedia-button';
+        wikiLink.className = 'micro-button track-event wikipedia-button';
+        wikiLink.setAttribute('data-track-action', 'Wikipedia');
         wikiLink.textContent = 'Wikipedia';
         wikiLink.style.cssText = `
             display: inline-block;
             margin-left: 4px;
-            margin-right: 4px;
-            padding: 2px 10px;
             background-color: #000000;
-            color: #ffffff;
+            color: #ffffff !important;
             border-radius: 4px;
             font-size: 12px;
             font-weight: 500;
-            text-decoration: none;
-            transition: all 0.2s ease;
+            text-decoration: none !important;
+            padding: 2px 10px;
             line-height: 1.8;
             vertical-align: middle;
+            transition: all 0.15s ease;
+            border: none;
         `;
 
         // Hover effect
@@ -179,27 +225,28 @@
             this.style.transform = 'scale(1)';
         });
 
-        // Also add a fallback search link (smaller, just in case)
+        // Also add a small search fallback
         const searchUrl = `https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(title + ' ' + (year || 'film'))}`;
         const searchLink = document.createElement('a');
         searchLink.href = searchUrl;
         searchLink.target = '_blank';
         searchLink.rel = 'noopener noreferrer';
-        searchLink.className = 'wikipedia-search-button';
+        searchLink.className = 'micro-button track-event wikipedia-search-button';
         searchLink.textContent = '🔍';
+        searchLink.setAttribute('data-track-action', 'Wikipedia Search');
         searchLink.style.cssText = `
             display: inline-block;
-            margin-left: 0px;
-            margin-right: 4px;
-            padding: 2px 6px;
+            margin-left: 2px;
             background-color: #f0f0f0;
-            color: #666;
+            color: #666 !important;
             border-radius: 4px;
-            font-size: 11px;
-            text-decoration: none;
-            transition: all 0.2s ease;
+            font-size: 12px;
+            text-decoration: none !important;
+            padding: 2px 6px;
             line-height: 1.8;
             vertical-align: middle;
+            transition: all 0.15s ease;
+            border: none;
         `;
         searchLink.title = 'Search Wikipedia (fallback)';
 
@@ -211,26 +258,28 @@
             this.style.backgroundColor = '#f0f0f0';
         });
 
-        // Insert the buttons before the IMDb/TMDB links
-        const firstLink = container.querySelector('a');
-        if (firstLink) {
-            // Insert before the first link (which is usually IMDb)
-            container.insertBefore(wikiLink, firstLink);
-            container.insertBefore(searchLink, firstLink);
-            // Add a small space after the search link
+        // Find where to insert - look for the first micro-button in the container
+        const firstMicroButton = moreAtContainer.querySelector('.micro-button');
+        if (firstMicroButton) {
+            // Insert before the first micro-button (which should be IMDb)
+            moreAtContainer.insertBefore(wikiLink, firstMicroButton);
+            moreAtContainer.insertBefore(searchLink, firstMicroButton);
+            // Add a space between the search link and the Wikipedia link
             const space = document.createTextNode(' ');
-            container.insertBefore(space, firstLink);
+            moreAtContainer.insertBefore(space, firstMicroButton);
             log('Wikipedia button inserted before IMDb');
         } else {
-            // If no links found, just append
-            container.appendChild(wikiLink);
-            container.appendChild(searchLink);
+            // If no micro-buttons found, just append to the container
+            moreAtContainer.appendChild(document.createTextNode(' '));
+            moreAtContainer.appendChild(wikiLink);
+            moreAtContainer.appendChild(document.createTextNode(' '));
+            moreAtContainer.appendChild(searchLink);
             log('Wikipedia button appended to container');
         }
 
-        // Log success
         log('✅ Wikipedia button added successfully!');
         log('Movie:', title, year || '');
+        log('Container HTML:', moreAtContainer.innerHTML);
     }
 
     // Wait for the page to load
@@ -243,10 +292,14 @@
         const checkInterval = setInterval(() => {
             attempts++;
             
-            // Check if the "More at" section exists
-            const moreAtSection = document.querySelector('.film-credits .text-sluglist');
+            // Check if the "More at" text exists
+            const hasMoreAt = Array.from(document.querySelectorAll('*')).some(el => 
+                el.childNodes && Array.from(el.childNodes).some(node => 
+                    node.nodeType === 3 && node.textContent.trim() === 'More at'
+                )
+            );
             
-            if (moreAtSection || document.querySelector('.film-credits')) {
+            if (hasMoreAt || document.querySelector('.micro-button[href*="imdb"]')) {
                 log('Page ready, adding Wikipedia button...');
                 clearInterval(checkInterval);
                 // Wait a bit more for dynamic content
