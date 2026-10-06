@@ -19,3 +19,19 @@ bash amc_fearfest_2026.sh fearfest.csv
 ```
 
 The script requires `lynx`. It extracts timed movie listings in schedule order, skips non-movie programming, and writes a `Title,Year` CSV. Repeated screenings with the same title and year are included once; years are included when AMC specifies them.
+
+## MeTV Saturday Three Stooges
+
+Use `lynx` and Bash to generate a Letterboxd import CSV from the 6:00pm Three Stooges shorts in MeTV's Saturday schedule:
+
+```sh
+bash metv_saturday_stooges.sh
+```
+
+By default, this uses the current Saturday or the next Saturday and writes `metv_saturday_stooges_YYYY-MM-DD.csv`. Pass a Saturday date to choose a schedule, and optionally pass an output path:
+
+```sh
+bash metv_saturday_stooges.sh 2026-10-10 stooges.csv
+```
+
+The script requires `lynx`. It writes one `Title` row per short and does not include episode descriptions.
