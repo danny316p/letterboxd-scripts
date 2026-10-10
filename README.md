@@ -35,3 +35,19 @@ bash metv_saturday_stooges.sh 2026-10-10 stooges.csv
 ```
 
 The script requires `lynx`. It writes one `Title` row per short and does not include episode descriptions.
+
+## C-SPAN Reel America
+
+Create a Letterboxd import CSV from the videos in C-SPAN's [Reel America archive](https://www.c-span.org/ahtv/?reelAmerica):
+
+```sh
+python3 cspan_reel_america.py
+```
+
+This writes `cspan_reel_america.csv` in the current directory. Pass a path to choose another output file:
+
+```sh
+python3 cspan_reel_america.py reel-america.csv
+```
+
+The script uses only Python's standard library, follows the archive's pagination, preserves distinct videos even when their titles repeat, and expects 912 videos by default. It will not write a CSV if C-SPAN blocks the request or the archive returns a different count. Use `--expected-count 0` to disable the count check after reviewing the archive.
