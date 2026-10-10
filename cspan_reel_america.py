@@ -8,7 +8,7 @@ import re
 import sys
 import time
 from urllib.error import HTTPError, URLError
-from urllib.parse import urljoin, urlparse
+from urllib.parse import parse_qsl, urlencode, urljoin, urlparse, urlunparse
 from urllib.request import Request, urlopen
 
 
@@ -17,6 +17,8 @@ EXPECTED_COUNT = 912
 MAX_PAGES = 200
 REQUEST_DELAY = 0.5
 VIDEO_ID = re.compile(r"/(\d+)/?$")
+PAGINATION_QUERY_KEYS = {"page", "p", "pageno", "pagenumber", "start", "offset", "from", "skip"}
+PAGINATION_CLASSES = {"page", "pagination", "pagination-link", "pager", "next", "previous"}
 
 
 class ArchiveParser(HTMLParser):
@@ -35,6 +37,9 @@ class ArchiveParser(HTMLParser):
             self.current_anchor = {
                 "href": href,
                 "title_class": "title" in classes,
+                "classes": classes,
+                "rel": set(attributes.get("rel", "").lower().split()),
+                "aria_label": attributes.get("aria-label", ""),
                 "text": [],
             }
 
@@ -102,8 +107,36 @@ def parse_archive_page(url, document):
                     videos[video_id] = candidate
             continue
 
-        if path == "/ahtv" and "reelamerica" in parsed.query.lower():
-            pages.append(target)
+        if path != "/ahtv" and not path.startswith("/ahtv/"):
+            continue
+
+        query = parse_qsl(parsed.query, keep_blank_values=True)
+        query_keys = {key.lower() for key, _ in query}
+        is_reel_america_page = (
+            "reelamerica" in parsed.path.lower()
+            or any(key.lower() == "reelamerica" for key, _ in query)
+        )
+        is_pagination_link = bool(query_keys & PAGINATION_QUERY_KEYS)
+        is_pagination_link |= any(
+            css_class in PAGINATION_CLASSES
+            or css_class.startswith(("page-", "page_", "pagination-", "pager-", "next", "previous"))
+            for css_class in anchor["classes"]
+        )
+        is_pagination_link |= "next" in anchor["rel"]
+        link_text = " ".join(
+            (anchor["aria_label"], "".join(anchor["text"]))
+        ).strip().lower()
+        is_pagination_link |= link_text.startswith(("next", "older"))
+        is_pagination_link |= link_text.isdigit()
+
+        if is_reel_america_page or is_pagination_link:
+            if not is_reel_america_page and path == "/ahtv":
+                query.append(("reelAmerica", ""))
+            pages.append(
+                urlunparse(
+                    parsed._replace(query=urlencode(query))
+                )
+            )
 
     return videos, pages
 
