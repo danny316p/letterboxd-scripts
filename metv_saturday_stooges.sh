@@ -60,8 +60,23 @@ fi
 printf '%s\n' "$EPISODE_TITLES" |
     sed 's/No Census, No Feeling/No Census__METV_TITLE_COMMA__ No Feeling/g; s/, */\n/g; s/__METV_TITLE_COMMA__/,/g' |
     awk '
+function url_slug(title,    slug, n, parts, i, part) {
+    slug = tolower(title)
+    # Replace apostrophes and quotes with nothing
+    gsub(/['"'"'"]/, "", slug)
+    # Replace ampersands with "and"
+    gsub(/&/, " and ", slug)
+    # Replace any non-alphanumeric character with a hyphen
+    gsub(/[^a-z0-9]+/, "-", slug)
+    # Collapse multiple hyphens
+    while (gsub(/--/, "-", slug)) {}
+    # Trim leading/trailing hyphens
+    sub(/^-+/, "", slug)
+    sub(/-+$/, "", slug)
+    return slug
+}
 BEGIN {
-    print "Title"
+    print "Title,Review"
 }
 {
     title = $0
@@ -70,8 +85,10 @@ BEGIN {
     if (title == "") {
         next
     }
+    slug = url_slug(title)
+    url = "https://threestooges.com/" slug "/"
     gsub(/"/, "\"\"", title)
-    printf "\"%s\"\n", title
+    printf "\"%s\",\"%s\"\n", title, url
     written++
 }
 END {
