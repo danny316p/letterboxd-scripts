@@ -4,7 +4,7 @@
 
 # use lynx to parse html and output to a file
 # DO NOT run this more than necessary, I don't want to abuse MeTV's server
-lynx -dump https://www.metv.com/schedule/2026-01-03 > mschlyn
+lynx -dump https://www.metv.com/schedule/2026-10-24 > mschlyn
 
 # mangle that file with sed and grep to create a Letterboxd-ready csv file
 echo "Title" > sedoutput.csv
