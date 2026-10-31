@@ -25,7 +25,7 @@ else
 fi
 
 URL="https://www.metv.com/schedule/$SCHEDULE_DATE"
-OUT="${2:-metv_saturday_stooges_${SCHEDULE_DATE}.csv}"
+OUT="${2:-outputs/metv_saturday_stooges_${SCHEDULE_DATE}.csv}"
 TMP_FILE=$(mktemp)
 trap 'rm -f "$TMP_FILE"' EXIT
 
