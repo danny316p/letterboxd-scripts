@@ -35,3 +35,19 @@ bash metv_saturday_stooges.sh 2026-10-10 stooges.csv
 ```
 
 The script requires `lynx`. It writes one `Title` row per short and does not include episode descriptions.
+
+## MeTV Saturday Morning Cartoons
+
+Use `lynx` and Bash to generate a Letterboxd import CSV from MeTV's Saturday morning cartoons schedule:
+
+```sh
+bash metv_saturday_cartoons.sh
+```
+
+By default, this uses the current Saturday or the next Saturday. Pass a Saturday date to choose a schedule:
+
+```sh
+bash metv_saturday_cartoons.sh 2026-11-07
+```
+
+The script requires `lynx`. It saves the downloaded schedule as `mschlyn` and writes the import CSV to `sedoutput.csv` in the current directory.
