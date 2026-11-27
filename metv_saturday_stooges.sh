@@ -1,13 +1,14 @@
 #!/bin/bash
 set -euo pipefail
 
-if [[ $# -gt 2 ]]; then
-    echo "Usage: $0 [YYYY-MM-DD [OUTPUT.csv]]" >&2
-    exit 2
-fi
+usage() {
+    echo "Usage:" >&2
+    echo "  $0 [YYYY-MM-DD [OUTPUT.csv]]" >&2
+    echo "  $0 --archive-url WAYBACK_URL [OUTPUT.csv]" >&2
+    echo "  $0 --snapshot YYYYMMDDhhmmss YYYY-MM-DD [OUTPUT.csv]" >&2
+}
 
-if [[ $# -ge 1 ]]; then
-    SCHEDULE_DATE="$1"
+validate_schedule_date() {
     if [[ ! "$SCHEDULE_DATE" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}$ ]] ||
         ! PARSED_DATE=$(date -d "$SCHEDULE_DATE" +%F 2>/dev/null) ||
         [[ "$PARSED_DATE" != "$SCHEDULE_DATE" ]]; then
@@ -18,14 +19,58 @@ if [[ $# -ge 1 ]]; then
         echo "Date must be a Saturday: $SCHEDULE_DATE" >&2
         exit 2
     fi
-else
-    TODAY=$(date +%F)
-    DAYS_UNTIL_SATURDAY=$(((6 - $(date +%u)) % 7))
-    SCHEDULE_DATE=$(date -d "$TODAY + $DAYS_UNTIL_SATURDAY days" +%F)
-fi
+}
 
-URL="https://www.metv.com/schedule/$SCHEDULE_DATE"
-OUT="${2:-outputs/metv_saturday_stooges_${SCHEDULE_DATE}.csv}"
+OUTPUT_PATH=""
+case "${1:-}" in
+    --archive-url)
+        if [[ $# -lt 2 || $# -gt 3 ]]; then
+            usage
+            exit 2
+        fi
+        URL="$2"
+        if [[ ! "$URL" =~ ^https://web\.archive\.org/web/[0-9]{14}/https://www\.metv\.com/schedule/([0-9]{4}-[0-9]{2}-[0-9]{2})/?$ ]]; then
+            echo "Invalid Wayback URL: expected an archived MeTV schedule URL." >&2
+            exit 2
+        fi
+        SCHEDULE_DATE="${BASH_REMATCH[1]}"
+        OUTPUT_PATH="${3:-}"
+        validate_schedule_date
+        ;;
+    --snapshot)
+        if [[ $# -lt 3 || $# -gt 4 ]]; then
+            usage
+            exit 2
+        fi
+        SNAPSHOT_TIMESTAMP="$2"
+        SCHEDULE_DATE="$3"
+        if [[ ! "$SNAPSHOT_TIMESTAMP" =~ ^[0-9]{14}$ ]]; then
+            echo "Invalid snapshot timestamp: expected YYYYMMDDhhmmss." >&2
+            exit 2
+        fi
+        validate_schedule_date
+        URL="https://web.archive.org/web/$SNAPSHOT_TIMESTAMP/https://www.metv.com/schedule/$SCHEDULE_DATE"
+        OUTPUT_PATH="${4:-}"
+        ;;
+    *)
+        if [[ $# -gt 2 ]]; then
+            usage
+            exit 2
+        fi
+        if [[ $# -ge 1 ]]; then
+            SCHEDULE_DATE="$1"
+            validate_schedule_date
+        else
+            TODAY=$(date +%F)
+            DAYS_UNTIL_SATURDAY=$(((6 - $(date +%u)) % 7))
+            SCHEDULE_DATE=$(date -d "$TODAY + $DAYS_UNTIL_SATURDAY days" +%F)
+        fi
+        URL="https://www.metv.com/schedule/$SCHEDULE_DATE"
+        OUTPUT_PATH="${2:-}"
+        ;;
+esac
+
+OUT="${OUTPUT_PATH:-outputs/metv_saturday_stooges_${SCHEDULE_DATE}.csv}"
 TMP_FILE=$(mktemp)
 trap 'rm -f "$TMP_FILE"' EXIT
 
