@@ -28,13 +28,28 @@ Use `lynx` and Bash to generate a Letterboxd import CSV from the 6:00pm Three St
 bash metv_saturday_stooges.sh
 ```
 
-By default, this uses the current Saturday or the next Saturday and writes `metv_saturday_stooges_YYYY-MM-DD.csv`. Pass a Saturday date to choose a schedule, and optionally pass an output path:
+By default, this uses the current Saturday or the next Saturday and writes `outputs/metv_saturday_stooges_YYYY-MM-DD.csv`. Pass a Saturday date to choose a schedule, and optionally pass an output path:
 
 ```sh
 bash metv_saturday_stooges.sh 2026-10-10 stooges.csv
 ```
 
-The script requires `lynx`. It writes one `Title` row per short and does not include episode descriptions.
+For schedules no longer available on MeTV's site, pass a Wayback Machine URL for an archived MeTV schedule page:
+
+```sh
+bash metv_saturday_stooges.sh --archive-url \
+  'https://web.archive.org/web/20261101125525/https://www.metv.com/schedule/2026-11-14'
+```
+
+Alternatively, provide a 14-digit Wayback snapshot timestamp and the Saturday schedule date:
+
+```sh
+bash metv_saturday_stooges.sh --snapshot 20261101125525 2026-11-14
+```
+
+Both archive modes default to `outputs/metv_saturday_stooges_YYYY-MM-DD.csv`. Append an output path to either command to override it.
+
+The script requires `lynx`. It writes each short's title and Three Stooges review URL in the `Title,Review` columns and does not include episode descriptions.
 
 ## MeTV Saturday Morning Cartoons
 
